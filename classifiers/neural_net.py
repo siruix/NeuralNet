@@ -111,13 +111,13 @@ class TwoLayerNet(object):
     p_ = p
     p_[np.arange(N), y] -= 1
     dW2 = hidden_layer.T.dot(p_) / N
-    db2 = np.mean(p_, axis=0, keepdims=True)
+    db2 = np.mean(p_, axis=0)
     dW2 += reg * W2 # why
 
     dhidden = np.dot(p_, W2.T)
     dhidden[hidden_layer <= 0] = 0
     dW1 = X.T.dot(dhidden) / N
-    db1 = np.mean(dhidden, axis=0, keepdims=True)
+    db1 = np.mean(dhidden, axis=0)
     dW1 += reg * W1
 
     grads = {'W1':dW1, 'b1':db1, 'W2':dW2, 'b2':db2}
@@ -164,7 +164,9 @@ class TwoLayerNet(object):
       # TODO: Create a random minibatch of training data and labels, storing  #
       # them in X_batch and y_batch respectively.                             #
       #########################################################################
-      pass
+      index = np.random.randint(num_train, size=batch_size)
+      X_batch = X[index]
+      y_batch = y[index]
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -179,7 +181,13 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-      pass
+      # print self.params['b1'].shape
+      # print grads['b1'].shape
+      self.params['W1'] -= learning_rate * grads['W1']
+      self.params['b1'] -= learning_rate * grads['b1']
+
+      self.params['W2'] -= learning_rate * grads['W2']
+      self.params['b2'] -= learning_rate * grads['b2']
       #########################################################################
       #                             END OF YOUR CODE                          #
       #########################################################################
@@ -190,6 +198,9 @@ class TwoLayerNet(object):
       # Every epoch, check train and val accuracy and decay learning rate.
       if it % iterations_per_epoch == 0:
         # Check accuracy
+        # index = np.random.randint(num_train, size=batch_size*100)
+        # X_batch = X[index]
+        # y_batch = y[index]
         train_acc = (self.predict(X_batch) == y_batch).mean()
         val_acc = (self.predict(X_val) == y_val).mean()
         train_acc_history.append(train_acc)
@@ -224,7 +235,10 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO: Implement this function; it should be VERY simple!                #
     ###########################################################################
-    pass
+    hiden = np.maximum(0, X.dot(self.params['W1'] + self.params['b1']))
+    scores = hiden.dot(self.params['W2'] + self.params['b2'])
+    p = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+    y_pred = np.argmax(p, axis=1)
     ###########################################################################
     #                              END OF YOUR CODE                           #
     ###########################################################################
